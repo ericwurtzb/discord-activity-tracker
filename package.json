@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.3.1",
+    "duckdb": "^0.8.1"
+  },
+  "name": "activity_tracker",
+  "version": "1.0.0",
+  "description": "discord bot activity tracker",
+  "main": "index.js",
+  "devDependencies": {
+    "eslint": "^8.45.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
