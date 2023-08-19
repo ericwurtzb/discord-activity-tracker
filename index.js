@@ -1,8 +1,7 @@
-const fs = require("node:fs");
-const path = require("node:path");
+const fs = require("fs");
+const path = require("path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
 const { token } = require("./config.json");
-const { fail } = require("node:assert");
 
 // These control how much data gets sent back from the Discord client
 
