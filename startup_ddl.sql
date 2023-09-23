@@ -1,1 +1,1 @@
-create or replace table StatusEvent(status_timestamp TIMESTAMPTZ default CURRENT_TIMESTAMP, user_id INTEGER, status VARCHAR, activities VARCHAR, client_status VARCHAR);
+create or replace table StatusEvent(status_timestamp TIMESTAMPTZ default CURRENT_TIMESTAMP, user_id BIGINT, status VARCHAR, activities VARCHAR, client_status VARCHAR);

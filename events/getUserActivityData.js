@@ -5,12 +5,13 @@ const DataWarehouse = require("../services/DuckDb");
 
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
 
-// const getListedUsers = () => {
-//   let text = fs.readFileSync("data/users.txt").toString("utf-8");
-//   let users = text.split("\n");
+const getListedUsers = async (dw) => {
+  let users = await dw.query(
+    "select distinct guild_id, user_id from GuildUsers"
+  );
 
-//   return users;
-// };
+  return users;
+};
 
 // const getUserData = (user = {});
 
@@ -33,37 +34,55 @@ const writeStatus = async (dw, userId, status, activities, clientStatus) => {
   console.log("writing status to duck");
   console.log(
     await dw.query(
-      `insert into StatusEvent(status_timestamp, user_id, status, activities, client_status) values (DEFAULT, ${userId}, '${status}', '${activities}', '${clientStatus}');`
-      //"create or replace table StatusEvent(status_timestamp TIMESTAMPTZ default CURRENT_TIMESTAMP, user_id BIGINT, status VARCHAR, activities VARCHAR, client_status VARCHAR);"
+      `insert into StatusEvents(status_timestamp, user_id, status, activities, client_status) values (DEFAULT, ${userId}, '${status}', '${activities}', '${clientStatus}');`
     )
   );
 };
 
 const getCurrentGuild = async (client, dw) => {
-  let userId = "375853254053068803";
-  let guildId = "964986533683806309";
+  let allUsers = await getListedUsers(dw);
+  console.log(allUsers);
+  allUsers.forEach(async (element) => {
+    let userId = element["user_id"];
+    let guildId = element["guild_id"];
 
-  let currentGuild = await client.guilds.fetch(guildId);
-  let currentGuildMember = await currentGuild.members.fetch({
-    user: userId,
-    withPresences: true,
+    // Get the guild + member
+    let currentGuild = await client.guilds.fetch(guildId);
+    let currentGuildMember = await currentGuild.members.fetch({
+      user: userId,
+      withPresences: true,
+    });
+
+    // Get their statuses
+    let currentStatus = currentGuildMember.presence?.status;
+    let currentActivity = JSON.stringify(
+      currentGuildMember.presence?.activities
+    );
+    let currentClientStatus = JSON.stringify(
+      currentGuildMember.presence?.clientStatus
+    );
+
+    console.log("Statuses for User ID: ", userId);
+    console.log(currentStatus);
+    console.log(currentActivity);
+    console.log(currentClientStatus);
+
+    // Write the statuses
+    await writeStatus(
+      dw,
+      userId,
+      currentStatus,
+      currentActivity,
+      currentClientStatus
+    );
   });
-
-  let currentStatus = currentGuildMember.presence.status;
-  let currentActivity = currentGuildMember.presence.activities;
-  let currentClientStatus = currentGuildMember.presence.clientStatus;
-  console.log("current guild member");
-  console.log(currentStatus);
-  console.log(currentActivity);
-  console.log(currentGuildMember.presence);
-
-  writeStatus(dw, userId, currentStatus, currentActivity, currentClientStatus);
 };
 
 module.exports = {
   name: Events.ClientReady,
   async execute(client) {
     const dw = new DataWarehouse();
+    await dw.launchDb();
     do {
       try {
         await getCurrentGuild(client, dw);
